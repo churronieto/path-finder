@@ -1,11 +1,23 @@
+///
+/// Interfaces
+///
 
-export interface MazeTile {
-    type: 'PATH' | 'ROCK'
+export interface Tile {
+    type: 'PATH' | 'ROCK' | 'START' | 'END';
 }
 
-export interface MazeTileDetail extends MazeTile {
+export interface SmartTile extends Tile {
+    // ajacent tiles that can be reached by this tile
     paths: number[],
-    position: number
+
+    // The tile's
+    position: number,
 }
+
+
+
+//
+// Types
+//
 
 export type Direction = '⭠' | '⭢' | '⭡' | '⭣';

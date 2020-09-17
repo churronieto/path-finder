@@ -4,30 +4,40 @@ export interface SpaceStyle {
     fontSize: string
 }
 
-export const theme = {
+export const Theme = {
     // walkable path
     path: {
-        pathFillStyle: '#f7f1e3',
+        pathFillStyle: '#608190', //'#f7f1e3',
         fontFillStyle: '#2d3436',
         fontSize: '20'
     },
-
+    start: {
+        pathFillStyle: '#f80000', //'#f7f1e3',
+        fontFillStyle: '#2d3436',
+        fontSize: '20'
+    },
+    end: {
+        pathFillStyle: '#f8f848', //'#f7f1e3',
+        fontFillStyle: '#f8f848',
+        fontSize: '20'
+    },
     // obstacle
     rock: {
-        pathFillStyle: '#84817a',
-        fontFillStyle: '#2d3436'
+        pathFillStyle: '#2a3f54', // '#84817a',
+        fontFillStyle: 'white',
+        fontSize: '20'
     },
 
     // route to solution
     solution: {
-        pathFillStyle: '#00b894',
-        fontFillStyle: 'white',
+        pathFillStyle: '#f8e8b0',
+        fontFillStyle: '#2d3436',
         fontSize: '20'
     },
 
     // highlight visited path
     visited: {
-        pathFillStyle: '#706fd3',
+        pathFillStyle: '#3688f8',
         fontFillStyle: '#2c2c54',
         fontSize: '20'
     },

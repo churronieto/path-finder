@@ -1,31 +1,33 @@
-import {Direction, MazeTile, MazeTileDetail} from "./maze";
+import {Direction, SmartTile} from "./maze";
 import {Queue} from "./queue";
+import {TilesSummary, World} from "./world-generator";
 
-/** What Original Maze looks like */
-export interface Maze {
-    tiles: MazeTile[];
-    rowSize: number;
-}
+///
+/// Interfaces
+///
 
 interface MapSolverLogs {
-    traversalPath: number[]
+    traversalPath: SmartTile[]
 }
 
 interface PathDetail {
     // a path that between "from" and "to"
-    route: number[],
+    route: SmartTile[],
 
     // all visited paths in the order in which they were visited
-    pathsVisited: number[]
+    pathsVisited: SmartTile[]
 }
 
+///
+/// Classes
+///
 
-export class MapSolver {
+export class PathFinder {
     // original maze, no directional information
-    private maze;
+    private tileSummary;
 
     // maze with direction information
-    private detailedMaze: MazeTileDetail[];
+    private detailedMaze: World;
 
 
     private logs: MapSolverLogs = {
@@ -34,15 +36,12 @@ export class MapSolver {
         traversalPath: []
     }
 
-    constructor(maze: Maze) {
-        this.maze = maze;
+    constructor(tilesSummary: TilesSummary) {
+        this.tileSummary = tilesSummary;
 
         // create once and reuse
         this.detailedMaze = this.createGraphFromMaze();
     }
-
-
-
 
     /**
      * Returns the path taken to get "from" point A "to" point b
@@ -50,25 +49,25 @@ export class MapSolver {
      * @param from
      * @param to
      */
-    findPath = (from: number, to: number): PathDetail => {
+    findPath = (): PathDetail => {
 
-        const route: number[] =  [];
+        const route: SmartTile[] =  [];
 
         // reset logs
         this.resetLogs();
 
         // verify that the 'to' and 'from' are actual paths in the maze otherwise there would never be a solution
-        if ( this.detailedMaze[from] && this.detailedMaze[from].type === 'PATH' &&
-            this.detailedMaze[to] && this.detailedMaze[to].type === 'PATH') {
+        // if ( this.detailedMaze.start && this.detailedMaze.mazeTiles[from].type === 'PATH' &&
+        //     this.detailedMaze.end && this.detailedMaze.mazeTiles[to].type === 'PATH') {
             const queue = new Queue<number>();
-            queue.offer(from);
+            queue.offer(this.detailedMaze.start);
 
             this.composePath(queue,
                 {},
-                this.detailedMaze,
-                to,
+                this.detailedMaze.mazeTiles,
+                this.detailedMaze.end,
                 route);
-        }
+        // }
 
         return {
             route,
@@ -93,9 +92,9 @@ export class MapSolver {
      */
     private composePath = (traversalQueue: Queue<number>,
                          visited: any,
-                         detailedMaze : MazeTileDetail[],
+                         detailedMaze : SmartTile[],
                          to: number,
-                         result: number[]): number => {
+                         result: SmartTile[]): number => {
 
         // console.log('traversalQueue                     ', traversalQueue.toArray());
         // console.log('visited                     ', {...visited});
@@ -109,14 +108,13 @@ export class MapSolver {
         const current = traversalQueue.poll();
 
         // order in which the graph was traversed;
-        this.logs.traversalPath.push(current);
+        this.logs.traversalPath.push(detailedMaze[current]);
 
         // record this as a visited node.
 
         // found a match add it and get go back
         if (current === to) {
-            result.push(current);
-            console.log("found match!!!");
+            result.push(detailedMaze[current]);
             return current; // return the node that last matched.
         }
 
@@ -143,7 +141,7 @@ export class MapSolver {
             // we found the path but need to make sure it is related to the next one up
 
             if (detailedMaze[previousPathToSolution].paths.includes(current)) {
-                result.push(current);
+                result.push(detailedMaze[current]);
                 return current;
             }
         }
@@ -151,18 +149,22 @@ export class MapSolver {
         return previousPathToSolution;
     }
 
-    private createGraphFromMaze = () : MazeTileDetail[] => {
-        const mazeGraph: MazeTileDetail[] = [];
+    private createGraphFromMaze = () : World => {
+        const mazeTiles: SmartTile[] = [];
 
-        for (let i = 0; i < this.maze.tiles.length; i++) {
+        let start = 0;
+        let end = 0;
 
-            const details: MazeTileDetail = {
+
+        for (let i = 0; i < this.tileSummary.tiles.length; i++) {
+
+            const details: SmartTile = {
                 paths: [],
                 position: i,
-                type: this.maze.tiles[i].type
+                type: this.tileSummary.tiles[i].type,
             };
 
-            mazeGraph.push(details);
+            mazeTiles.push(details);
 
             if (details.type != 'PATH') {
                 continue; // continue if this is not a path since it should not have any connections
@@ -170,14 +172,27 @@ export class MapSolver {
 
             ['⭠', '⭢', '⭡', '⭣'].forEach((direction: Direction) => {
                 let position = this.getPosition(i, direction);
-                if (position != null && this.maze.tiles[position].type === 'PATH') {
+                if (position != null && this.tileSummary.tiles[position].type != 'ROCK') {
+
+                    if (this.tileSummary.tiles[position].type === 'START') {
+                        start = i;
+                    }
+
+                    if (this.tileSummary.tiles[position].type === 'END') {
+                        end = i;
+                    }
+
                     details.paths.push(position);
                 }
             });
 
         }
 
-        return mazeGraph;
+        return {
+            start, end, mazeTiles
+        };
+
+        // return mazeGraph;
     }
 
     /**
@@ -190,20 +205,20 @@ export class MapSolver {
     private getPosition = (currentPosition: number, direction: Direction ) => {
         switch (direction) {
             case '⭠': {
-                return currentPosition % this.maze.rowSize > 0
+                return currentPosition % this.tileSummary.rowSize > 0
                     ? currentPosition - 1
                     : null;
             }
             case '⭢': {
-                return currentPosition < this.maze.tiles.length -1 && currentPosition % this.maze.rowSize < this.maze.rowSize - 1
+                return currentPosition < this.tileSummary.tiles.length -1 && currentPosition % this.tileSummary.rowSize < this.tileSummary.rowSize - 1
                     ? currentPosition + 1
                     : null;
             }
             case '⭡': {
-                return currentPosition - this.maze.rowSize < 0 ? null : currentPosition - this.maze.rowSize;
+                return currentPosition - this.tileSummary.rowSize < 0 ? null : currentPosition - this.tileSummary.rowSize;
             }
             case '⭣': {
-                return currentPosition + this.maze.rowSize > this.maze.tiles.length -1 ? null : currentPosition + this.maze.rowSize;
+                return currentPosition + this.tileSummary.rowSize > this.tileSummary.tiles.length -1 ? null : currentPosition + this.tileSummary.rowSize;
             }
         }
     }

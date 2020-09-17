@@ -1,37 +1,46 @@
-import {MazePainter} from "./maze-painter";
-import {MapSolver} from "./maze-solver";
-import {MazeCreator} from "./maze-creator";
-import {theme} from "./theme";
+import {WorldRender} from "./world-render";
+import {PathFinder} from "./path-finder";
+import {WorldGenerator} from "./world-generator";
+import {Theme} from "./theme";
 
 class App {
 
-    public mazePainter;
-    public mazeSolver;
+    public worldRender;
+    public pathFinder;
+    public tiles;
 
     constructor() {
         const canvas: HTMLCanvasElement = document.getElementById('myCanvas') as HTMLCanvasElement;
         const ctx = canvas.getContext("2d");
 
-        const maze = new MazeCreator().createMaze(25, 25, .4);
+        // generates random tiles that make up the "world"
+        this.tiles = new WorldGenerator().generateTiles(25, 25, .4);
 
-        this.mazePainter = new MazePainter(ctx, maze);
-        this.mazeSolver = new MapSolver(maze);
+        this.worldRender = new WorldRender(ctx, this.tiles);
+        this.pathFinder = new PathFinder(this.tiles);
     }
 
     initialize() {
-        this.mazePainter.drawMaze();
+        this.worldRender.renderWorld();
     }
 
-    solve(from: number, to: number ) {
-        const pathDetail = this.mazeSolver.findPath(from, to);
-        // this.mazePainter.highlightPath(pathDetail.route);
-        // this.mazePainter.highlightPathSlowly(pathDetail.route, 0);
-        this.mazePainter.highlightPathSlowly(pathDetail.pathsVisited, 0,
-            () => {this.mazePainter.highlightPathSlowly(pathDetail.route, 0, null, theme.solution)},
-            theme.visited);
+    solve() {
+
+        const pathDetail = this.pathFinder.findPath();
+
+        this.worldRender.highlightPathSlowly(pathDetail.pathsVisited, 0,
+            () => {
+            this.worldRender.highlightPathSlowly(pathDetail.route, 0, null, Theme.solution)
+            },
+            Theme.visited);
     }
+
 }
 
+
+///
+/// Run the application
+///
 const app = new App();
 app.initialize();
-app.solve(9, 1470);
+app.solve();
