@@ -1,127 +1,123 @@
 import {Tile, SmartTile} from "./maze";
-import {SpaceStyle, Theme} from "./theme";
-import {TilesSummary} from "./world-generator";
+import {Configuration, TileStyle} from "./config";
+import {World} from "./world-generator";
 
 export class WorldRender {
 
     public ctx;
-    public pathSize = 50; // route dimention
-    public worldOverview: TilesSummary; // route dimention
-    public delayDrawMs = 10;
+    private world: World;
 
     /**
      *
      * @param ctx context where the maze tiles will be drawn
-     * @param worldOverview tiles that make up the maze
+     * @param world
      */
-    constructor(ctx: CanvasRenderingContext2D, worldOverview: TilesSummary) {
+    constructor(ctx: CanvasRenderingContext2D, world: World) {
         this.ctx = ctx;
-        this.worldOverview = worldOverview;
+        this.world = world;
     }
 
     renderWorld = () => {
 
-        for (let i = 0; i < this.worldOverview.tiles.length; i++) {
+        for (let i = 0; i < this.world.tiles.length; i++) {
             // order of squares is filled from top to bottom
-            this.drawTile(this.worldOverview.tiles[i], i);
+            this.drawTile(this.world.tiles[i], i);
         }
     }
 
     drawTile = (mazeTile: Tile, index: number) =>  {
-        const size = this.pathSize;
-        const y = Math.floor(index / this.worldOverview.rowSize) * size; // tells you what row you are on.
-        const x = index % this.worldOverview.rowSize * size; // tells you what column you are on
+        const y = Math.floor(index / this.world.rows) * Configuration.getConfig().world.tileSize; // tells you what row you are on.
+        const x = index % this.world.rows * Configuration.getConfig().world.tileSize; // tells you what column you are on
 
         switch (mazeTile.type) {
             case 'ROCK':
-                this.drawRock(x,y, Theme.rock);
+                this.drawRock(x,y, Configuration.getConfig().world.theme.rock);
                 break;
             case "PATH":
-                this.drawPath(x,y, Theme.path);
-                this.drawPathId(x,y, '' + index);
+                this.drawPath(x,y, Configuration.getConfig().world.theme.path);
                 break;
             case 'START':
-                this.drawPath(x,y, Theme.start);
+                this.drawPath(x,y, Configuration.getConfig().world.theme.start);
                 break;
             case 'END':
-                this.drawPath(x,y, Theme.end);
-
+                this.drawPath(x,y, Configuration.getConfig().world.theme.end);
                 break;
         }
+
+        if (Configuration.getConfig().algorithm.showTilePosition) {
+            this.drawPathId(x,y, '' + index);
+        }
+
+
     }
 
-    highlightTile = (mazeTile: Tile, index: number, highlightColor: SpaceStyle) =>  {
-        const size = this.pathSize;
-        const y = Math.floor(index / this.worldOverview.rowSize) * size; // tells you what row you are on.
-        const x = index % this.worldOverview.rowSize * size; // tells you what column you are on
+    /**
+     *
+     * @param mazeTile
+     * @param index
+     * @param highlightColor
+     * @param content text to display within the tile
+     */
+    highlightTile = (mazeTile: Tile, index: number, highlightColor: TileStyle, content?: string) =>  {
+        const y = Math.floor(index / this.world.rows) * Configuration.getConfig().world.tileSize; // tells you what row you are on.
+        const x = index % this.world.rows * Configuration.getConfig().world.tileSize; // tells you what column you are on
 
         switch (mazeTile.type) {
             case 'ROCK':
-                this.drawRock(x,y, Theme.visited);
+                this.drawRock(x,y, Configuration.getConfig().world.theme.visited);
                 break;
             case "PATH":
                 this.drawPath(x,y, highlightColor);
-                this.drawPathId(x,y, '' + index);
                 break;
             case 'START':
-                this.drawPath(x,y, Theme.start);
+                this.drawPath(x,y, Configuration.getConfig().world.theme.start);
                 break;
             case 'END':
-                this.drawPath(x,y, Theme.end);
+                this.drawPath(x,y, Configuration.getConfig().world.theme.end);
                 break;
+        }
+
+        if (Configuration.getConfig().algorithm.showVisitedOrderNumbers && !!content) {
+            this.drawPathId(x ,y, '' + content);
         }
     }
 
 
-    drawRock(x: number, y: number, rockStyle: SpaceStyle) {
+    drawRock(x: number, y: number, rockStyle: TileStyle) {
+
+        // space
+        this.ctx.fillStyle = 'black';
+        this.ctx.fillRect(x , y, Configuration.getConfig().world.tileSize, Configuration.getConfig().world.tileSize);
+
+
+        // actual square....
         this.ctx.fillStyle = rockStyle.pathFillStyle;
-        this.ctx.fillRect(x, y, this.pathSize, this.pathSize);
+        this.ctx.fillRect(x + 1, y  + 1, Configuration.getConfig().world.tileSize - 1, Configuration.getConfig().world.tileSize - 1);
     }
 
-    drawPath(x: number, y: number, pathStyle: SpaceStyle) {
+    drawPath(x: number, y: number, pathStyle: TileStyle) {
+
+        this.ctx.fillStyle = 'black';
+        this.ctx.fillRect(x , y, Configuration.getConfig().world.tileSize, Configuration.getConfig().world.tileSize);
+
         this.ctx.beginPath();
         this.ctx.fillStyle = pathStyle.pathFillStyle;
-        this.ctx.fillRect(x, y, this.pathSize, this.pathSize);
+        this.ctx.fillRect(x +1, y +1, Configuration.getConfig().world.tileSize -1, Configuration.getConfig().world.tileSize -1);
         this.ctx.stroke();
     }
 
     drawPathId(x: number, y: number, id: string) {
         const offset = 10;
-        this.ctx.font = `${Theme.path.fontSize}px Arial`;
+        this.ctx.font = `${Configuration.getConfig().world.theme.path.fontSize}px Arial`;
         this.ctx.fillStyle = "black";
-        this.ctx.fillText(id, x + (this.pathSize/2) - offset, y + (this.pathSize/2) + offset);
+        this.ctx.fillText(id, x + (Configuration.getConfig().world.tileSize/2) - offset, y + (Configuration.getConfig().world.tileSize/2) + offset);
     }
 
-    // highlightPath = (result: number[]) => {
-    //     result.forEach((number) => {
-    //         const y = Math.floor(number / this.maze.rowSize) * this.pathSize; // tells you what row you are on.
-    //         const x = number % this.maze.rowSize * this.pathSize; // tells you what column you are on
-    //
-    //         this.ctx.fillStyle = theme.solution.pathFillStyle;
-    //         this.ctx.fillRect(x, y, this.pathSize, this.pathSize);
-    //
-    //         this.ctx.font = `${theme.solution.fontSize}px Arial`;
-    //         this.ctx.fillStyle = theme.solution.fontFillStyle;
-    //         this.ctx.fillText(number + '', x + (this.pathSize/2) - 10, y + (this.pathSize/2) + 10);
-    //     })
-    // }
-
-    highlightPathSlowly = (result: SmartTile[], index: number, callback: Function, highlightColor: SpaceStyle) => {
+    highlightPathSlowly = (result: SmartTile[], index: number, callback: Function, highlightColor: TileStyle, content?: string) => {
 
             if (index < result.length) {
                     setTimeout(()=> {
-                        this.highlightTile(result[index], result[index].position, highlightColor);
-
-                        // const number = result[index].position;
-                        // const y = Math.floor(number / this.maze.rowSize) * this.pathSize; // tells you what row you are on.
-                        // const x = number % this.maze.rowSize * this.pathSize; // tells you what column you are on
-                        //
-                        // this.ctx.fillStyle = highlightColor.pathFillStyle;
-                        // this.ctx.fillRect(x, y, this.pathSize, this.pathSize);
-                        //
-                        // this.ctx.font = `${highlightColor.fontSize}px Arial`;
-                        // this.ctx.fillStyle = highlightColor.fontFillStyle;
-                        // this.ctx.fillText(number + '', x + (this.pathSize/2) - 10, y + (this.pathSize/2) + 10);
+                        this.highlightTile(result[index], result[index].position, highlightColor, ''+index);
 
                         this.highlightPathSlowly(result, index + 1, callback, highlightColor);
 
@@ -130,10 +126,20 @@ export class WorldRender {
                         }
 
                         // if this is the last one then resolve it
-                    }, this.delayDrawMs);
+                    }, Configuration.getConfig().algorithm.highlightPathMs);
             }
     }
 
+    highlightPathQuickly = (result: SmartTile[], index: number, callback: Function, highlightColor: TileStyle, content?: string) => {
+
+        for (let i = 0; i < result.length; i++) {
+            this.highlightTile(result[i], result[i].position, highlightColor, ''+i);
+        }
+
+        if (callback) {
+            callback();
+        }
+    }
 
 
 }

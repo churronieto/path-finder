@@ -1,6 +1,6 @@
-import {Direction, SmartTile} from "./maze";
+import {SmartTile} from "./maze";
 import {Queue} from "./queue";
-import {TilesSummary, World} from "./world-generator";
+import {World} from "./world-generator";
 
 ///
 /// Interfaces
@@ -23,12 +23,9 @@ interface PathDetail {
 ///
 
 export class PathFinder {
-    // original maze, no directional information
-    private tileSummary;
 
     // maze with direction information
-    private detailedMaze: World;
-
+    private world: World;
 
     private logs: MapSolverLogs = {
         // .length is the max stack size,
@@ -36,11 +33,8 @@ export class PathFinder {
         traversalPath: []
     }
 
-    constructor(tilesSummary: TilesSummary) {
-        this.tileSummary = tilesSummary;
-
-        // create once and reuse
-        this.detailedMaze = this.createGraphFromMaze();
+    constructor(world: World) {
+        this.world = world;
     }
 
     /**
@@ -52,6 +46,7 @@ export class PathFinder {
     findPath = (): PathDetail => {
 
         const route: SmartTile[] =  [];
+        const traversalPath: SmartTile[] =  [];
 
         // reset logs
         this.resetLogs();
@@ -60,18 +55,21 @@ export class PathFinder {
         // if ( this.detailedMaze.start && this.detailedMaze.mazeTiles[from].type === 'PATH' &&
         //     this.detailedMaze.end && this.detailedMaze.mazeTiles[to].type === 'PATH') {
             const queue = new Queue<number>();
-            queue.offer(this.detailedMaze.start);
+            queue.offer(this.world.start);
+
+            console.log('this.world.start', this.world.start);
 
             this.composePath(queue,
-                {},
-                this.detailedMaze.mazeTiles,
-                this.detailedMaze.end,
+                {[this.world.start]:this.world.start},
+                this.world.tiles,
+                this.world.end,
+                traversalPath,
                 route);
         // }
 
         return {
             route,
-            pathsVisited: this.logs.traversalPath
+            pathsVisited: traversalPath
         };
     }
 
@@ -88,16 +86,15 @@ export class PathFinder {
      * @param visited
      * @param detailedMaze
      * @param to
+     * @param traversalPath
      * @param result
      */
     private composePath = (traversalQueue: Queue<number>,
                          visited: any,
                          detailedMaze : SmartTile[],
                          to: number,
+                         traversalPath: SmartTile[],
                          result: SmartTile[]): number => {
-
-        // console.log('traversalQueue                     ', traversalQueue.toArray());
-        // console.log('visited                     ', {...visited});
 
         // we have inspecting everything we could, queue is empty so lets get out
         if (traversalQueue.isEmpty()) {
@@ -108,7 +105,7 @@ export class PathFinder {
         const current = traversalQueue.poll();
 
         // order in which the graph was traversed;
-        this.logs.traversalPath.push(detailedMaze[current]);
+        traversalPath.push(detailedMaze[current]);
 
         // record this as a visited node.
 
@@ -118,10 +115,7 @@ export class PathFinder {
             return current; // return the node that last matched.
         }
 
-        // todo: sometimes there is no path at the starting node for some reason...
         detailedMaze[current].paths.forEach((tile) => {
-
-
             // if it has not been visited yet then add it to the queue
             if (visited[tile] == null) {
                 traversalQueue.offer(tile);
@@ -131,7 +125,7 @@ export class PathFinder {
 
 
         // we either found it which should be a path, or not witch should not be a path.
-        let previousPathToSolution = this.composePath(traversalQueue, visited, detailedMaze, to, result);
+        let previousPathToSolution = this.composePath(traversalQueue, visited, detailedMaze, to, traversalPath, result);
 
         if (previousPathToSolution != null) {
 
@@ -148,79 +142,4 @@ export class PathFinder {
 
         return previousPathToSolution;
     }
-
-    private createGraphFromMaze = () : World => {
-        const mazeTiles: SmartTile[] = [];
-
-        let start = 0;
-        let end = 0;
-
-
-        for (let i = 0; i < this.tileSummary.tiles.length; i++) {
-
-            const details: SmartTile = {
-                paths: [],
-                position: i,
-                type: this.tileSummary.tiles[i].type,
-            };
-
-            mazeTiles.push(details);
-
-            if (details.type != 'PATH') {
-                continue; // continue if this is not a path since it should not have any connections
-            }
-
-            ['⭠', '⭢', '⭡', '⭣'].forEach((direction: Direction) => {
-                let position = this.getPosition(i, direction);
-                if (position != null && this.tileSummary.tiles[position].type != 'ROCK') {
-
-                    if (this.tileSummary.tiles[position].type === 'START') {
-                        start = i;
-                    }
-
-                    if (this.tileSummary.tiles[position].type === 'END') {
-                        end = i;
-                    }
-
-                    details.paths.push(position);
-                }
-            });
-
-        }
-
-        return {
-            start, end, mazeTiles
-        };
-
-        // return mazeGraph;
-    }
-
-    /**
-     * Gets position if valid, otherwise returns null
-     *
-     * @param maze
-     * @param direction
-     * @param currentPosition
-     */
-    private getPosition = (currentPosition: number, direction: Direction ) => {
-        switch (direction) {
-            case '⭠': {
-                return currentPosition % this.tileSummary.rowSize > 0
-                    ? currentPosition - 1
-                    : null;
-            }
-            case '⭢': {
-                return currentPosition < this.tileSummary.tiles.length -1 && currentPosition % this.tileSummary.rowSize < this.tileSummary.rowSize - 1
-                    ? currentPosition + 1
-                    : null;
-            }
-            case '⭡': {
-                return currentPosition - this.tileSummary.rowSize < 0 ? null : currentPosition - this.tileSummary.rowSize;
-            }
-            case '⭣': {
-                return currentPosition + this.tileSummary.rowSize > this.tileSummary.tiles.length -1 ? null : currentPosition + this.tileSummary.rowSize;
-            }
-        }
-    }
-
 }

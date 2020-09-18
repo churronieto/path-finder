@@ -6,6 +6,9 @@ export interface Tile {
     type: 'PATH' | 'ROCK' | 'START' | 'END';
 }
 
+/**
+ * Tile that holds its position in the World and
+ */
 export interface SmartTile extends Tile {
     // ajacent tiles that can be reached by this tile
     paths: number[],
@@ -20,4 +23,3 @@ export interface SmartTile extends Tile {
 // Types
 //
 
-export type Direction = '⭠' | '⭢' | '⭡' | '⭣';
