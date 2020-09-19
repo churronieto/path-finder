@@ -2,12 +2,9 @@
 /// Interfaces
 ///
 
-export interface Tile {
-    type: 'PATH' | 'ROCK' | 'START' | 'END';
-}
 
 /**
- * Tile that holds its position in the World and
+ * SmartTiles are tiles that are aware of their surroundings
  */
 export interface SmartTile extends Tile {
     // ajacent tiles that can be reached by this tile
@@ -17,9 +14,9 @@ export interface SmartTile extends Tile {
     position: number,
 }
 
-
-
-//
-// Types
-//
-
+/**
+ * Tiles are what make up the world
+ */
+export interface Tile {
+    type: 'PATH' | 'ROCK' | 'START' | 'END';
+}

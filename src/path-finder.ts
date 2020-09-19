@@ -1,5 +1,5 @@
-import {SmartTile} from "./maze";
-import {Queue} from "./queue";
+import {SmartTile} from "./tile";
+import {ArrayQueue, Queue} from "./arrayQueue";
 import {World} from "./world-generator";
 
 ///
@@ -54,7 +54,7 @@ export class PathFinder {
         // verify that the 'to' and 'from' are actual paths in the maze otherwise there would never be a solution
         // if ( this.detailedMaze.start && this.detailedMaze.mazeTiles[from].type === 'PATH' &&
         //     this.detailedMaze.end && this.detailedMaze.mazeTiles[to].type === 'PATH') {
-            const queue = new Queue<number>();
+            const queue = new ArrayQueue<number>();
             queue.offer(this.world.start);
 
             console.log('this.world.start', this.world.start);

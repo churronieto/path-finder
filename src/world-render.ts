@@ -1,4 +1,4 @@
-import {Tile, SmartTile} from "./maze";
+import {Tile, SmartTile} from "./tile";
 import {Configuration, TileStyle} from "./config";
 import {World} from "./world-generator";
 

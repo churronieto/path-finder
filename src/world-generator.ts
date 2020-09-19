@@ -1,4 +1,4 @@
-import {SmartTile, Tile} from "./maze";
+import {SmartTile, Tile} from "./tile";
 
 ///
 /// Interfaces/ Types

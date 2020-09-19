@@ -8,6 +8,7 @@ export interface Config {
         animateRoute: boolean,
         showRoute: boolean,
         animateVisited: boolean,
+        animatePathFromStartToEnd: boolean, // true to go from start to end, false to go from end to start
         showVisited: boolean,
         showVisitedOrderNumbers: boolean,
 
@@ -76,6 +77,7 @@ export class Configuration {
 
             highlightPathMs: 2,
 
+            animatePathFromStartToEnd: true,
             animateRoute: false,
             showRoute: true,
 
@@ -85,10 +87,10 @@ export class Configuration {
 
         },
         world: {
-            tileSize: 10,
-            rows: 100,
-            columns: 75,
-            obstacleRate: .4,
+            tileSize: 30,
+            rows: 100, // placeholder: this value is reset on app initialization to fix browser screen
+            columns: 100, // placeholder: this value is reset on app initialization to fix browser screen
+            obstacleRate: .3,
             theme: {
                 path: {
                     pathFillStyle: '#608190',
@@ -129,43 +131,34 @@ export class Configuration {
         }
     };
 
-
     ///
     /// configuration allowed
     ///
 
-
-    static setMode = (mode: string) => {
-        switch (mode) {
-            case 'skipVisited': {
-                Configuration.routeOnly();
-                break;
-            }
-            case 'skipVisitedAnimation': {
-                Configuration.animateRouteOnly();
-                break;
-            }
-            case 'animate': {
-                Configuration.animateSolution();
-                break;
-            }
-            case 'skipAnimations': {
-                Configuration.quickSolution();
-                break;
-            }
-        }
+    /**
+     * Set the dimensions of the world
+     *
+     * @param columns
+     * @param rows the height of the world
+     */
+    static setDimensions = (columns: number, rows?: number) => {
+        Configuration.currentConfiguration.world.columns = columns;
+        Configuration.currentConfiguration.world.rows = !rows ? columns : rows;
+        Configuration._config = null; // to trigger a change
     }
 
-    static routeOnly = () => {
+    static setSkipVisited = () => {
         // in case animatePath is not a boolean, we make sure it stays a boolean;
+        Configuration.currentConfiguration.algorithm.animatePathFromStartToEnd = true;
         Configuration.currentConfiguration.algorithm.animateRoute = true;
         Configuration.currentConfiguration.algorithm.showRoute = true;
         Configuration.currentConfiguration.algorithm.showVisited = false;
         Configuration._config = null; // to trigger a change
     }
 
-    static animateSolution = () => {
-        // in case animatePath is not a boolean, we make sure it stays a boolean;
+    static setAnimate = () => {
+        // It feels more natural to walk back the route when we see the we found the solution
+        Configuration.currentConfiguration.algorithm.animatePathFromStartToEnd = false;
         Configuration.currentConfiguration.algorithm.animateRoute = true;
         Configuration.currentConfiguration.algorithm.showRoute = true;
         Configuration.currentConfiguration.algorithm.animateVisited = true;
@@ -173,8 +166,9 @@ export class Configuration {
         Configuration._config = null; // to trigger a change
     }
 
-    static animateRouteOnly = () => {
+    static skipVisitedAnimation = () => {
         // in case animatePath is not a boolean, we make sure it stays a boolean;
+        Configuration.currentConfiguration.algorithm.animatePathFromStartToEnd = true;
         Configuration.currentConfiguration.algorithm.animateRoute = true;
         Configuration.currentConfiguration.algorithm.showRoute = true;
         Configuration.currentConfiguration.algorithm.animateVisited = false;
@@ -182,28 +176,13 @@ export class Configuration {
         Configuration._config = null; // to trigger a change
     }
 
-    static quickSolution = () => {
+    static setSkipAnimations = () => {
         // in case animatePath is not a boolean, we make sure it stays a boolean;
         Configuration.currentConfiguration.algorithm.animateRoute = false;
         Configuration.currentConfiguration.algorithm.showRoute = true;
         Configuration.currentConfiguration.algorithm.animateVisited = false;
         Configuration.currentConfiguration.algorithm.showVisited = true;
         Configuration._config = null; // to trigger a change
-    }
-
-    static setDimentions = (columns: number, rows?: number) => {
-
-        if (!rows) {
-            rows = columns;
-        }
-
-        console.log('columns', columns);
-        console.log('rows', rows);
-
-        Configuration.currentConfiguration.world.columns = columns;
-        Configuration.currentConfiguration.world.rows = rows;
-        Configuration._config = null; // to trigger a change
-
     }
 
 }
