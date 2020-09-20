@@ -73,7 +73,7 @@ class App {
                 break;
             }
             default: {
-                Configuration.skipVisitedAnimation();
+                Configuration.setAnimate();
                 break;
             }
         }
