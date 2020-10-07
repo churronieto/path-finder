@@ -43,10 +43,9 @@ export class WorldGenerator {
     /**
      * Randomly generates paths, obstacles, start, and end tiles to create the World
      */
-    generateWorld = (columns: number, rows: number, pathPercent: number): World => {
+    generateWorld(columns: number, rows: number, pathPercent: number): World {
         const tiles = this.generateTiles(columns * rows, pathPercent);
         return this.createConnectedWorld(tiles, columns, rows);
-
     }
 
     ///
@@ -120,7 +119,7 @@ export class WorldGenerator {
      *
      * @returns the World where tiles are aware of their traversable neighbors
      */
-    private createConnectedWorld = (tiles: Tile[], columns: number, rows: number) : World => {
+    private createConnectedWorld(tiles: Tile[], columns: number, rows: number): World {
         const smartTiles: SmartTile[] = [];
 
         let start = 0;
@@ -174,7 +173,7 @@ export class WorldGenerator {
      * @param direction the direction in which to search for neighboring tile
      * @param currentPosition the index of the tile whose neighbors we want to discover
      */
-    private getPosition = (tiles: Tile[], rows: number, currentPosition: number, direction: Direction ) => {
+    private getPosition(tiles: Tile[], rows: number, currentPosition: number, direction: Direction ) {
         switch (direction) {
             case '⭠': {
                 return currentPosition % rows > 0

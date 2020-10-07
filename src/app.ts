@@ -23,7 +23,7 @@ class App {
 
         const ctx = canvas.getContext("2d");
 
-        // adjust configuration from serach params
+        // adjust configuration from search params
         this.setConfiguration();
 
         // generates random tiles that make up the "world"
@@ -54,7 +54,7 @@ class App {
     }
 
 
-    private setMode = (mode: string) => {
+    private setMode(mode: string) {
         switch (mode) {
             case 'skipVisited': {
                 Configuration.setSkipVisited();

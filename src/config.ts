@@ -11,7 +11,6 @@ export interface Config {
         animatePathFromStartToEnd: boolean, // true to go from start to end, false to go from end to start
         showVisited: boolean,
         showVisitedOrderNumbers: boolean,
-
     },
     world: {
         tileSize: number,
@@ -33,6 +32,7 @@ export interface TileStyle {
     pathFillStyle: string,
     fontFillStyle: string,
     fontSize: number
+    borderFillStyle: string
 }
 
 export class Configuration {
@@ -40,7 +40,7 @@ export class Configuration {
     private static _config: any = null;
 
     // return immutable configuration, this should be the only way we access this data
-    static getConfig = (): Config => {
+    static getConfig(): Config {
 
         // console.log('Configuration._config == null',Configuration._config == null );
 
@@ -95,44 +95,51 @@ export class Configuration {
                 path: {
                     pathFillStyle: '#608190',
                     fontFillStyle: '#2d3436',
-                    fontSize: 20
+                    fontSize: 20,
+                    borderFillStyle: 'black'
                 },
                 start: {
                     pathFillStyle: '#f80000',
                     fontFillStyle: '#2d3436',
-                    fontSize: 20
+                    fontSize: 20,
+                    borderFillStyle: 'black'
                 },
                 end: {
                     pathFillStyle: '#f8f848',
                     fontFillStyle: '#f8f848',
-                    fontSize: 20
+                    fontSize: 20,
+                    borderFillStyle: 'black'
                 },
+
                 // obstacle
                 rock: {
                     pathFillStyle: '#2a3f54',
                     fontFillStyle: 'white',
-                    fontSize: 20
+                    fontSize: 20,
+                    borderFillStyle: 'black'
                 },
 
                 // route to solution
                 route: {
                     pathFillStyle: '#f8e8b0',
                     fontFillStyle: '#2d3436',
-                    fontSize: 20
+                    fontSize: 20,
+                    borderFillStyle: 'black'
                 },
 
                 // highlight visited path
                 visited: {
                     pathFillStyle: '#3688f8',
                     fontFillStyle: '#2c2c54',
-                    fontSize: 20
+                    fontSize: 20,
+                    borderFillStyle: 'black'
                 },
             }
         }
     };
 
     ///
-    /// configuration allowed
+    /// allowed configuration
     ///
 
     /**
@@ -141,13 +148,13 @@ export class Configuration {
      * @param columns
      * @param rows the height of the world
      */
-    static setDimensions = (columns: number, rows?: number) => {
+    static setDimensions(columns: number, rows?: number) {
         Configuration.currentConfiguration.world.columns = columns;
         Configuration.currentConfiguration.world.rows = !rows ? columns : rows;
         Configuration._config = null; // to trigger a change
     }
 
-    static setSkipVisited = () => {
+    static setSkipVisited(){
         // in case animatePath is not a boolean, we make sure it stays a boolean;
         Configuration.currentConfiguration.algorithm.animatePathFromStartToEnd = true;
         Configuration.currentConfiguration.algorithm.animateRoute = true;
@@ -156,7 +163,7 @@ export class Configuration {
         Configuration._config = null; // to trigger a change
     }
 
-    static setAnimate = () => {
+    static setAnimate(){
         // It feels more natural to walk back the route when we see the we found the solution
         Configuration.currentConfiguration.algorithm.animatePathFromStartToEnd = false;
         Configuration.currentConfiguration.algorithm.animateRoute = true;
@@ -166,7 +173,7 @@ export class Configuration {
         Configuration._config = null; // to trigger a change
     }
 
-    static skipVisitedAnimation = () => {
+    static skipVisitedAnimation(){
         // in case animatePath is not a boolean, we make sure it stays a boolean;
         Configuration.currentConfiguration.algorithm.animatePathFromStartToEnd = true;
         Configuration.currentConfiguration.algorithm.animateRoute = true;
@@ -176,7 +183,7 @@ export class Configuration {
         Configuration._config = null; // to trigger a change
     }
 
-    static setSkipAnimations = () => {
+    static setSkipAnimations(){
         // in case animatePath is not a boolean, we make sure it stays a boolean;
         Configuration.currentConfiguration.algorithm.animateRoute = false;
         Configuration.currentConfiguration.algorithm.showRoute = true;

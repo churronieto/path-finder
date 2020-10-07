@@ -43,7 +43,7 @@ export class PathFinder {
      * @param from
      * @param to
      */
-    findPath = (): PathDetail => {
+    findPath(): PathDetail {
 
         const route: SmartTile[] =  [];
         const traversalPath: SmartTile[] =  [];
@@ -89,12 +89,12 @@ export class PathFinder {
      * @param traversalPath
      * @param result
      */
-    private composePath = (traversalQueue: Queue<number>,
+    private composePath(traversalQueue: Queue<number>,
                          visited: any,
                          detailedMaze : SmartTile[],
                          to: number,
                          traversalPath: SmartTile[],
-                         result: SmartTile[]): number => {
+                         result: SmartTile[]): number {
 
         // we have inspecting everything we could, queue is empty so lets get out
         if (traversalQueue.isEmpty()) {
